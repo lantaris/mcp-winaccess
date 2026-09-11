@@ -39,13 +39,8 @@ def move_mouse(x: int, y: int) -> str:
 def drag(x_from: int, y_from: int, x_to: int, y_to: int, duration: float = 0.5) -> str:
     return adapter.drag(x_from, y_from, x_to, y_to, duration)
 
-@mcp.tool(description="Right-click at coordinates.")
-def right_click(x: int = 0, y: int = 0, window_title: str = "", control_identifier: str = "") -> str:
-    if window_title and control_identifier:
-        result = adapter.click_element(window_title, control_identifier)
-        # Note: right_click for element is not fully separated in adapter; using adapter logic directly would require extension.
-        # For simplicity, using adapter methods where available.
-        return adapter.right_click(x, y) if not (window_title and control_identifier) else adapter.right_click(x, y)
+@mcp.tool(description="Right-click at screen coordinates (x, y).")
+def right_click(x: int = 0, y: int = 0) -> str:
     return adapter.right_click(x, y)
 
 @mcp.tool(description="Scroll down or up at screen or inside window control.")
@@ -53,7 +48,7 @@ def scroll(direction: str = "down", amount: int = 3, x: int = 0, y: int = 0, win
     return adapter.scroll(direction, amount, x, y, window_title, control_identifier)
 
 @mcp.tool(description="Launch executable by full path.")
-def run_app(exe_path: str = "C:\\Users\\user\\OpenCode\\ugame\\Build\\UGAME.exe") -> str:
+def run_app(exe_path: str) -> str:
     try:
         subprocess.Popen(exe_path)
         return f"Started: {exe_path}"
@@ -61,7 +56,7 @@ def run_app(exe_path: str = "C:\\Users\\user\\OpenCode\\ugame\\Build\\UGAME.exe"
         return f"ERROR: Failed to start {exe_path}: {exc}"
 
 @mcp.tool(description="Kill process by executable base name.")
-def kill_app(name: str = "UGAME") -> str:
+def kill_app(name: str) -> str:
     try:
         result = subprocess.run(
             ["taskkill", "/F", "/IM", f"{name}.exe"],
