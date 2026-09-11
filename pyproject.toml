@@ -1,6 +1,6 @@
 [project]
 name = "mcp-winaccess"
-version = "1.0.0"
+version = "1.0.1"
 description = "Local MCP server for OpenCode — Windows desktop automation via pyautogui and pywinauto"
 requires-python = ">=3.10"
 dependencies = [
