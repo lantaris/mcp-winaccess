@@ -113,19 +113,24 @@ class WindowsAdapter(BaseAdapter):
         pyautogui.write(text, interval=0.05)
         return f"Typed: {text}"
 
-    def find_window(self, title: str = "") -> Optional[str]:
+    def find_window(self, value) -> Optional[str]:
         """Agent instruction: Returns window info for agent context awareness before get_all_controls."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
                 win_text = win.window_text() or ""
                 win_class = win.class_name() or ""
-                if title in win_text or title in win_class:
-                    rect = win.rectangle()
-                    return f"Found: title={win_text}, class={win_class}, handle={win.handle}, pid={win.process_id()}, rect={rect}"
+                if isinstance(value, int):
+                    if win.handle == value:
+                        rect = win.rectangle()
+                        return f"Found: title={win_text}, class={win_class}, handle={win.handle}, pid={win.process_id()}, rect={rect}"
+                else:
+                    if value in win_text or value in win_class:
+                        rect = win.rectangle()
+                        return f"Found: title={win_text}, class={win_class}, handle={win.handle}, pid={win.process_id()}, rect={rect}"
             except Exception:
                 continue
-        return f"ERROR: Window '{title}' not found."
+        return f"ERROR: Window '{value}' not found."
 
     def list_windows(self) -> Optional[str]:
         """Agent instruction: Agent uses list_windows for automation tasks."""
@@ -138,8 +143,8 @@ class WindowsAdapter(BaseAdapter):
                 continue
         return "\n".join(results) if results else "No visible windows found."
 
-    def wait_for_window(self, title: str = "", timeout: float = 10.0) -> Optional[str]:
-        """Agent instruction: Agent uses wait_for_window for automation tasks."""
+    def wait_for_window(self, value, timeout: float = 10.0) -> Optional[str]:
+        """Agent instruction: Accepts partial title (str) or handle (int)."""
         desktop = Desktop()
         start = time.time()
         while time.time() - start < timeout:
@@ -147,26 +152,37 @@ class WindowsAdapter(BaseAdapter):
                 try:
                     win_text = win.window_text() or ""
                     win_class = win.class_name() or ""
-                    if title in win_text or title in win_class:
-                        return f"Window '{title}' found (title={win_text})."
+                    if isinstance(value, int):
+                        if win.handle == value:
+                            return f"Window '{value}' found (title={win_text})."
+                    else:
+                        if value in win_text or value in win_class:
+                            return f"Window '{value}' found (title={win_text})."
                 except Exception:
                     continue
             time.sleep(0.5)
-        return f"ERROR: Timeout ({timeout}s) waiting for '{title}'."
+        return f"ERROR: Timeout ({timeout}s) waiting for '{value}'."
 
-    def manage_window(self, title: str = "", action: str = "maximize", x: int = 0, y: int = 0) -> Optional[str]:
-        """Agent instruction: Use after get_all_controls to manage the target window before interaction."""
+    def manage_window(self, value, action: str = "maximize", x: int = 0, y: int = 0) -> Optional[str]:
+        """Agent instruction: Accepts partial title (str) or handle (int)."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
-                if title in (win.window_text() or ""):
-                    if action == "minimize": win.minimize(); return f"Minimized: {win.window_text()}"
-                    elif action == "maximize": win.maximize(); return f"Maximized: {win.window_text()}"
-                    elif action == "restore": win.restore(); return f"Restored: {win.window_text()}"
-                    elif action == "move": win.move_window(x=x, y=y); return f"Moved: {win.window_text()} to ({x}, {y})"
+                if isinstance(value, int):
+                    if win.handle == value:
+                        if action == "minimize": win.minimize(); return f"Minimized: {win.window_text()}"
+                        elif action == "maximize": win.maximize(); return f"Maximized: {win.window_text()}"
+                        elif action == "restore": win.restore(); return f"Restored: {win.window_text()}"
+                        elif action == "move": win.move_window(x=x, y=y); return f"Moved: {win.window_text()} to ({x}, {y})"
+                else:
+                    if value in (win.window_text() or ""):
+                        if action == "minimize": win.minimize(); return f"Minimized: {win.window_text()}"
+                        elif action == "maximize": win.maximize(); return f"Maximized: {win.window_text()}"
+                        elif action == "restore": win.restore(); return f"Restored: {win.window_text()}"
+                        elif action == "move": win.move_window(x=x, y=y); return f"Moved: {win.window_text()} to ({x}, {y})"
             except Exception:
                 continue
-        return f"ERROR: Window '{title}' not found or action '{action}' unknown."
+        return f"ERROR: Window '{value}' not found or action '{action}' unknown."
 
     def _find_control(self, desktop, win, control_identifier: str):
         """Agent instruction: Search by title_re first, then by automation name/auto_id."""
@@ -299,6 +315,7 @@ class WindowsAdapter(BaseAdapter):
         return f"ERROR: Window '{value}' not found or could not be activated."
 
     def get_window_state(self, title: str = "") -> Optional[str]:
+        """Agent instruction: Agent uses get_window_state for automation tasks. Accepts partial title (str) or handle (int)."""
         desktop = Desktop()
         for win in desktop.windows():
             try:

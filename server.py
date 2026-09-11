@@ -74,9 +74,10 @@ def kill_app(name: str = "UGAME") -> str:
 # --- Window automation (conditional based on adapter) ---
 
 if adapter.supports_ui_automation:
-    @mcp.tool(description="Find visible top-level window.")
-    def find_window(title: str = "") -> str:
-        return adapter.find_window(title) or f"ERROR: Window '{title}' not found."
+    @mcp.tool(description="Find visible top-level window by partial title or handle.")
+    def find_window(value) -> str:
+        result = adapter.find_window(value) or f"ERROR: Window '{value}' not found."
+        return result
 
     @mcp.tool(description="Click UI control inside window.")
     def click_element(window_title: str, control_identifier: str) -> str:
@@ -88,15 +89,15 @@ if adapter.supports_ui_automation:
         result = adapter.read_text(window_title, control_identifier)
         return result or f"ERROR: Control '{control_identifier}' not found."
 
-    @mcp.tool(description="Manage window state.")
-    def manage_window(title: str = "", action: str = "maximize", x: int = 0, y: int = 0) -> str:
-        result = adapter.manage_window(title, action, x, y)
+    @mcp.tool(description="Manage window state by partial title or handle.")
+    def manage_window(value, action: str = "maximize", x: int = 0, y: int = 0) -> str:
+        result = adapter.manage_window(value, action, x, y)
         return result or f"ERROR: Manage window failed."
 
-    @mcp.tool(description="Wait for window to appear.")
-    def wait_for_window(title: str = "", timeout: float = 10.0) -> str:
-        result = adapter.wait_for_window(title, timeout)
-        return result or f"ERROR: Timeout waiting for '{title}'."
+    @mcp.tool(description="Wait for window by partial title or handle.")
+    def wait_for_window(value, timeout: float = 10.0) -> str:
+        result = adapter.wait_for_window(value, timeout)
+        return result or f"ERROR: Timeout waiting for '{value}'."
 
     @mcp.tool(description="List visible windows.")
     def list_windows() -> str:
@@ -113,20 +114,20 @@ if adapter.supports_ui_automation:
         result = adapter.set_text(window_title, control_identifier, value)
         return result or f"ERROR: Control '{control_identifier}' not found."
 
-    @mcp.tool(description="List child controls in window.")
-    def get_all_controls(window_title: str) -> str:
-        result = adapter.get_all_controls(window_title)
-        return result or f"ERROR: Window '{window_title}' not found."
+    @mcp.tool(description="List child controls in window by partial title or handle.")
+    def get_all_controls(value) -> str:
+        result = adapter.get_all_controls(value)
+        return result or f"ERROR: Window '{value}' not found."
 
     @mcp.tool(description="Wait for specific element inside window.")
     def wait_for_element(window_title: str, control_identifier: str, timeout: float = 10.0) -> str:
         result = adapter.wait_for_element(window_title, control_identifier, timeout)
         return result or f"ERROR: Timeout waiting for '{control_identifier}'."
 
-    @mcp.tool(description="Get window state.")
-    def get_window_state(title: str = "") -> str:
-        result = adapter.get_window_state(title)
-        return result or f"ERROR: Window '{title}' not found."
+    @mcp.tool(description="Get window state by partial title or handle.")
+    def get_window_state(value) -> str:
+        result = adapter.get_window_state(value)
+        return result or f"ERROR: Window '{value}' not found."
 
     @mcp.tool(description="Switch to a window by partial title or handle and activate it.")
     def switch_to_window(value) -> str:

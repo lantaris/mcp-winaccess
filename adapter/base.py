@@ -41,20 +41,20 @@ class BaseAdapter:
         """Agent instruction: Agent uses type_text for automation tasks."""
         raise NotImplementedError
 
-    def find_window(self, title: str = "") -> Optional[str]:
-        """Agent instruction: Agent uses find_window for automation tasks."""
+    def find_window(self, value) -> Optional[str]:
+        """Agent instruction: Agent uses find_window for automation tasks. Accepts partial title (str) or window handle (int)."""
         return None
 
     def list_windows(self) -> Optional[str]:
         """Agent instruction: Agent uses list_windows for automation tasks."""
         return None
 
-    def wait_for_window(self, title: str = "", timeout: float = 10.0) -> Optional[str]:
-        """Agent instruction: Agent uses wait_for_window for automation tasks."""
+    def wait_for_window(self, value, timeout: float = 10.0) -> Optional[str]:
+        """Agent instruction: Agent uses wait_for_window for automation tasks. Accepts partial title (str) or handle (int)."""
         return None
 
-    def manage_window(self, title: str = "", action: str = "maximize", x: int = 0, y: int = 0) -> Optional[str]:
-        """Agent instruction: Agent uses manage_window for automation tasks."""
+    def manage_window(self, value, action: str = "maximize", x: int = 0, y: int = 0) -> Optional[str]:
+        """Agent instruction: Agent uses manage_window for automation tasks. Accepts partial title (str) or handle (int)."""
         return None
 
     def switch_to_window(self, value) -> Optional[str]:
@@ -77,16 +77,16 @@ class BaseAdapter:
         """Agent instruction: Agent uses set_text for automation tasks."""
         return None
 
-    def get_all_controls(self, window_title: str) -> Optional[str]:
-        """Agent instruction: Agent uses get_all_controls for automation tasks."""
+    def get_all_controls(self, value) -> Optional[str]:
+        """Agent instruction: Agent uses get_all_controls for automation tasks. Accepts partial title (str) or handle (int)."""
         return None
 
     def wait_for_element(self, window_title: str, control_identifier: str, timeout: float = 10.0) -> Optional[str]:
         """Agent instruction: Agent uses wait_for_element for automation tasks."""
         return None
 
-    def get_window_state(self, title: str = "") -> Optional[str]:
-        """Agent instruction: Agent uses get_window_state for automation tasks."""
+    def get_window_state(self, value) -> Optional[str]:
+        """Agent instruction: Agent uses get_window_state for automation tasks. Accepts partial title (str) or handle (int)."""
         return None
 
     def type_in_element(self, window_title: str, control_identifier: str, text: str) -> Optional[str]:
