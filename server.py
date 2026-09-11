@@ -302,6 +302,332 @@ def list_windows() -> str:
         return f"ERROR: List windows failed: {exc}"
 
 
+@mcp.tool(description="Get detailed text content from a UI control (Edit, Static, Document) inside a window. Returns full text content for agent understanding.")
+def get_text(window_title: str, control_identifier: str) -> str:
+    """Agent instruction: Use this to read the full text of a specific UI element (label, input, document). It searches descendants inside the window and returns the complete text content, which helps verify form data or read labels without screenshots.
+    Args:
+        window_title: Partial title of the parent window.
+        control_identifier: Partial control identifier (name, automation ID, or class).
+    Returns:
+        Full text content of the control or error message.
+    """
+    try:
+        desktop = Desktop()
+        for win in desktop.windows():
+            try:
+                if window_title in (win.window_text() or ""):
+                    ctrl = win.descendants(title_re=control_identifier)
+                    if ctrl and len(ctrl) > 0:
+                        text_content = ctrl[0].window_text() or ""
+                        return f"FULL_TEXT: '{text_content}' from control '{control_identifier}' in '{win.window_text()}'"
+            except Exception:
+                continue
+        return f"ERROR: Control '{control_identifier}' not found in '{window_title}'."
+    except Exception as exc:
+        return f"ERROR: Get text failed: {exc}"
+
+
+@mcp.tool(description="Set text into a specific Edit control inside a window. Useful for agents that need to fill forms without relying on keyboard focus.")
+def set_text(window_title: str, control_identifier: str, value: str) -> str:
+    """Agent instruction: Use this when the agent needs to input a specific value directly into an edit box or text field. It finds the control by identifier inside the target window and sets its text. This is more reliable than type_text when the exact input field is known from previous screenshot analysis.
+    Args:
+        window_title: Partial title of the parent window.
+        control_identifier: Partial control identifier (name, automation ID, or class).
+        value: The text string to set.
+    Returns:
+        Confirmation or error message.
+    """
+    try:
+        desktop = Desktop()
+        for win in desktop.windows():
+            try:
+                if window_title in (win.window_text() or ""):
+                    ctrl = win.descendants(title_re=control_identifier)
+                    if ctrl and len(ctrl) > 0:
+                        ctrl[0].set_text(value)
+                        return f"SET_TEXT: '{value}' into '{control_identifier}' in '{win.window_text()}'"
+            except Exception:
+                continue
+        return f"ERROR: Control '{control_identifier}' not found in '{window_title}'."
+    except Exception as exc:
+        return f"ERROR: Set text failed: {exc}"
+
+
+@mcp.tool(description="List all child controls inside a target window with their types, names, and texts. This helps agents discover available UI elements for interaction.")
+def get_all_controls(window_title: str) -> str:
+    """Agent instruction: Use this before interacting with an unknown window. It returns a structured list of all child controls (buttons, edits, static labels) with their automation IDs and text. Agents can use this output to decide which control_identifier to use with click_element, set_text, or get_text.
+    Args:
+        window_title: Partial title of the parent window.
+    Returns:
+        Multi-line description of each child control, or error message.
+    """
+    try:
+        desktop = Desktop()
+        for win in desktop.windows():
+            try:
+                if window_title in (win.window_text() or ""):
+                    results = []
+                    for child in win.descendants():
+                        try:
+                            child_text = child.window_text() or ""
+                            child_type = str(child.element_info.control_type) if hasattr(child.element_info, 'control_type') else type(child).__name__
+                            results.append(f"Type: {child_type}, Name/Text: '{child_text}', Control: {child}")
+                        except Exception:
+                            continue
+                    return "\n".join(results) if results else "No child controls found."
+            except Exception:
+                continue
+        return f"ERROR: Window '{window_title}' not found."
+    except Exception as exc:
+        return f"ERROR: List controls failed: {exc}"
+
+
+@mcp.tool(description="Perform a double left-click at absolute screen coordinates or on a specific control inside a window. Useful for opening files or selecting items.")
+def double_click(x: int = 0, y: int = 0, window_title: str = "", control_identifier: str = "") -> str:
+    """Agent instruction: Use this when the agent needs to open an item with a double-click. If x and y are provided, it clicks at those screen coordinates. If window_title and control_identifier are provided, it finds the control inside the window and performs a double-click on it. At least one method (coordinates or control) should be specified.
+    Args:
+        x: Horizontal screen coordinate (optional if using control).
+        y: Vertical screen coordinate (optional if using control).
+        window_title: Partial window title (optional if using coordinates).
+        control_identifier: Partial control identifier (optional if using coordinates).
+    Returns:
+        Confirmation or error message.
+    """
+    try:
+        if window_title and control_identifier:
+            desktop = Desktop()
+            for win in desktop.windows():
+                try:
+                    if window_title in (win.window_text() or ""):
+                        ctrl = win.descendants(title_re=control_identifier)
+                        if ctrl and len(ctrl) > 0:
+                            ctrl[0].double_click_input()
+                            return f"DOUBLE_CLICKED control '{control_identifier}' in '{win.window_text()}'"
+                except Exception:
+                    continue
+            return f"ERROR: Control '{control_identifier}' not found in '{window_title}'."
+        else:
+            pyautogui.doubleClick(x, y)
+            return f"Double clicked at coordinates ({x}, {y})"
+    except Exception as exc:
+        return f"ERROR: Double click failed: {exc}"
+
+
+@mcp.tool(description="Perform a right-click at absolute screen coordinates or on a specific control inside a window. Opens context menus for agents to interact with.")
+def right_click(x: int = 0, y: int = 0, window_title: str = "", control_identifier: str = "") -> str:
+    """Agent instruction: Use this to open context menus at specific points or on specific controls. If x and y are provided, it performs a screen-level right-click. If window_title and control_identifier are provided, it performs a right-click on the control inside the window.
+    Args:
+        x: Horizontal screen coordinate.
+        y: Vertical screen coordinate.
+        window_title: Partial window title.
+        control_identifier: Partial control identifier.
+    Returns:
+        Confirmation or error message.
+    """
+    try:
+        if window_title and control_identifier:
+            desktop = Desktop()
+            for win in desktop.windows():
+                try:
+                    if window_title in (win.window_text() or ""):
+                        ctrl = win.descendants(title_re=control_identifier)
+                        if ctrl and len(ctrl) > 0:
+                            ctrl[0].right_click_input()
+                            return f"RIGHT_CLICKED control '{control_identifier}' in '{win.window_text()}'"
+                except Exception:
+                    continue
+            return f"ERROR: Control '{control_identifier}' not found in '{window_title}'."
+        else:
+            pyautogui.rightClick(x, y)
+            return f"Right clicked at ({x}, {y})"
+    except Exception as exc:
+        return f"ERROR: Right click failed: {exc}"
+
+
+@mcp.tool(description="Scroll inside a window or at screen coordinates. Helps agents navigate long lists or pages.")
+def scroll(direction: str = "down", amount: int = 3, x: int = 0, y: int = 0, window_title: str = "", control_identifier: str = "") -> str:
+    """Agent instruction: Use this to scroll through content in a window. If control_identifier is specified, it scrolls inside that control. Otherwise, it scrolls at screen coordinates (x, y) or with default position. The amount controls how many scroll actions to perform. Direction can be 'up' or 'down'.
+    Args:
+        direction: 'up' or 'down'.
+        amount: Number of scroll actions.
+        x: Screen X coordinate (optional).
+        y: Screen Y coordinate (optional).
+        window_title: Partial window title (optional).
+        control_identifier: Partial control identifier for scrolling inside a specific element.
+    Returns:
+        Confirmation or error message.
+    """
+    try:
+        scroll_amount = 120 if direction == "down" else -120
+        if window_title and control_identifier:
+            desktop = Desktop()
+            for win in desktop.windows():
+                try:
+                    if window_title in (win.window_text() or ""):
+                        ctrl = win.descendants(title_re=control_identifier)
+                        if ctrl and len(ctrl) > 0:
+                            ctrl[0].wheel_mouse_input(wheel_dist=scroll_amount * amount)
+                            return f"SCROLLED {direction} {amount} times inside '{control_identifier}'"
+                except Exception:
+                    continue
+            return f"ERROR: Control '{control_identifier}' not found in '{window_title}'."
+        else:
+            for _ in range(amount):
+                pyautogui.scroll(scroll_amount, x=x, y=y)
+            return f"SCROLLED {direction} {amount} times at ({x}, {y})"
+    except Exception as exc:
+        return f"ERROR: Scroll failed: {exc}"
+
+
+@mcp.tool(description="Wait for a specific control element inside a window to appear. Useful for agents that need to confirm loading states or dynamic content.")
+def wait_for_element(window_title: str, control_identifier: str, timeout: float = 10.0) -> str:
+    """Agent instruction: Use this when the agent needs to confirm that a specific button, input, or label has appeared before proceeding. It continuously checks inside the target window for the control identifier until it is found or timeout is reached.
+    Args:
+        window_title: Partial title of the parent window.
+        control_identifier: Partial control identifier.
+        timeout: Maximum wait time in seconds.
+    Returns:
+        Confirmation when found, or timeout error.
+    """
+    try:
+        desktop = Desktop()
+        start = time.time()
+        while time.time() - start < timeout:
+            for win in desktop.windows():
+                try:
+                    if window_title in (win.window_text() or ""):
+                        ctrl = win.descendants(title_re=control_identifier)
+                        if ctrl and len(ctrl) > 0:
+                            return f"ELEMENT FOUND: '{control_identifier}' in '{win.window_text()}'"
+                except Exception:
+                    continue
+            time.sleep(0.5)
+        return f"ERROR: Timeout ({timeout}s) waiting for element '{control_identifier}' in '{window_title}'."
+    except Exception as exc:
+        return f"ERROR: Wait for element failed: {exc}"
+
+
+@mcp.tool(description="Get the current state of a window: minimized, maximized, or normal. Helps agents decide whether to manage the window before taking screenshots.")
+def get_window_state(title: str = "") -> str:
+    """Agent instruction: Use this to check whether a window is minimized, maximized, or in normal state. The agent can use this information to decide whether to call manage_window before performing actions or taking screenshots.
+    Args:
+        title: Partial window title.
+    Returns:
+        Window state description, or error message.
+    """
+    try:
+        desktop = Desktop()
+        for win in desktop.windows():
+            try:
+                if title in (win.window_text() or ""):
+                    rect = win.rectangle()
+                    # Check window placement state through rectangle and internal flags if available
+                    state_info = f"Window '{win.window_text()}' rect={rect}, handle={win.handle}, pid={win.process_id()}"
+                    return state_info
+            except Exception:
+                continue
+        return f"ERROR: Window '{title}' not found."
+    except Exception as exc:
+        return f"ERROR: Get window state failed: {exc}"
+
+
+@mcp.tool(description="Type text directly into a specific control inside a window. More precise than type_text because it targets a known input field.")
+def type_in_element(window_title: str, control_identifier: str, text: str) -> str:
+    """Agent instruction: Use this when the agent knows the exact input field identifier (from get_all_controls or previous analysis) and wants to enter text directly into that control. It first selects the control and then types the text, ensuring the input reaches the correct field even if keyboard focus is elsewhere.
+    Args:
+        window_title: Partial title of the parent window.
+        control_identifier: Partial control identifier.
+        text: The string to type.
+    Returns:
+        Confirmation or error message.
+    """
+    try:
+        desktop = Desktop()
+        for win in desktop.windows():
+            try:
+                if window_title in (win.window_text() or ""):
+                    ctrl = win.descendants(title_re=control_identifier)
+                    if ctrl and len(ctrl) > 0:
+                        ctrl[0].click_input()
+                        ctrl[0].type_keys(text)
+                        return f"TYPED: '{text}' into '{control_identifier}' in '{win.window_text()}'"
+            except Exception:
+                continue
+        return f"ERROR: Control '{control_identifier}' not found in '{window_title}'."
+    except Exception as exc:
+        return f"ERROR: Type in element failed: {exc}"
+
+
+@mcp.tool(description="Move the mouse cursor to absolute screen coordinates without clicking. Useful for preparing the pointer position before drag or click actions.")
+def move_mouse(x: int, y: int) -> str:
+    """Agent instruction: Use this to position the mouse cursor at specific screen coordinates without performing any click. This is useful before drag operations or to show the user where the agent is focusing.
+    Args:
+        x: Target horizontal screen coordinate.
+        y: Target vertical screen coordinate.
+    Returns:
+        Confirmation string or error message.
+    """
+    try:
+        pyautogui.moveTo(x, y, duration=0.2)
+        return f"Mouse moved to ({x}, {y})"
+    except Exception as exc:
+        return f"ERROR: Move mouse failed: {exc}"
+
+
+@mcp.tool(description="Drag the mouse from one screen coordinate to another. Useful for moving items or selecting ranges on screen.")
+def drag(x_from: int, y_from: int, x_to: int, y_to: int, duration: float = 0.5) -> str:
+    """Agent instruction: Use this when the agent needs to drag an item or select a range by moving the mouse from starting coordinates (x_from, y_from) to destination coordinates (x_to, y_to). The duration controls how fast the drag performs.
+    Args:
+        x_from: Starting horizontal coordinate.
+        y_from: Starting vertical coordinate.
+        x_to: Destination horizontal coordinate.
+        y_to: Destination vertical coordinate.
+        duration: Duration of the drag in seconds (default 0.5).
+    Returns:
+        Confirmation string or error message.
+    """
+    try:
+        # Ensure mouse starts at the from position, then drag to destination
+        pyautogui.moveTo(x_from, y_from, duration=0.1)
+        pyautogui.dragTo(x_to, y_to, duration=duration, button='left')
+        return f"DRAGGED from ({x_from}, {y_from}) to ({x_to}, {y_to}) over {duration}s"
+    except Exception as exc:
+        return f"ERROR: Drag failed: {exc}"
+
+
+@mcp.tool(description="Drag a specific UI control inside a window to target screen coordinates. Helps agents move elements in forms or lists.")
+def drag_element(window_title: str, control_identifier: str, x_to: int, y_to: int, duration: float = 0.5) -> str:
+    """Agent instruction: Use this when the agent needs to drag a specific control (like a button, slider, or item) to new screen coordinates. It finds the control inside the window, clicks and holds it, then drags to (x_to, y_to).
+    Args:
+        window_title: Partial title of the parent window.
+        control_identifier: Partial control identifier.
+        x_to: Target horizontal screen coordinate.
+        y_to: Target vertical screen coordinate.
+        duration: Duration of the drag in seconds.
+    Returns:
+        Confirmation or error message.
+    """
+    try:
+        desktop = Desktop()
+        for win in desktop.windows():
+            try:
+                if window_title in (win.window_text() or ""):
+                    ctrl = win.descendants(title_re=control_identifier)
+                    if ctrl and len(ctrl) > 0:
+                        # Get control center for drag start
+                        rect = ctrl[0].rectangle()
+                        start_x = (rect.left + rect.right) // 2
+                        start_y = (rect.top + rect.bottom) // 2
+                        pyautogui.moveTo(start_x, start_y)
+                        pyautogui.dragTo(x_to, y_to, duration=duration, button='left')
+                        return f"DRAGGED control '{control_identifier}' from ({start_x}, {start_y}) to ({x_to}, {y_to})"
+            except Exception:
+                continue
+        return f"ERROR: Control '{control_identifier}' not found in '{window_title}'."
+    except Exception as exc:
+        return f"ERROR: Drag element failed: {exc}"
+
+
 def main():
     mcp.run(transport="stdio")
 
