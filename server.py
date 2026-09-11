@@ -71,26 +71,6 @@ def kill_app(name: str = "UGAME") -> str:
     except Exception as exc:
         return f"ERROR: Kill failed: {exc}"
 
-@mcp.tool(description="Read last 20 lines of text log file.")
-def read_log(path: str = "C:\\Users\\user\\AppData\\LocalLow\\DefaultCompany\\ugame\\ugame_log.txt") -> str:
-    try:
-        with open(path, "r", encoding="utf-8", errors="ignore") as f:
-            lines = f.read().splitlines()
-        return "\n".join(lines[-20:])
-    except Exception as exc:
-        return f"ERROR: Reading log failed: {exc}"
-
-@mcp.tool(description="Run Unity build automation batch script.")
-def build_project() -> str:
-    try:
-        result = subprocess.run(
-            ["cmd", "/c", "C:\\Users\\user\\OpenCode\\ugame\\BuildProject.bat"],
-            capture_output=True, text=True
-        )
-        return f"Build output:\n{result.stdout}\n{result.stderr}"
-    except Exception as exc:
-        return f"ERROR: Build failed: {exc}"
-
 # --- Window automation (conditional based on adapter) ---
 
 if adapter.supports_ui_automation:
@@ -147,6 +127,11 @@ if adapter.supports_ui_automation:
     def get_window_state(title: str = "") -> str:
         result = adapter.get_window_state(title)
         return result or f"ERROR: Window '{title}' not found."
+
+    @mcp.tool(description="Switch to a window by partial title or handle and activate it.")
+    def switch_to_window(value) -> str:
+        result = adapter.switch_to_window(value)
+        return result or f"ERROR: Could not activate '{value}'."
 
     @mcp.tool(description="Type into specific control.")
     def type_in_element(window_title: str, control_identifier: str, text: str) -> str:
