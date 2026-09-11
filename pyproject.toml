@@ -6,10 +6,13 @@ requires-python = ">=3.10"
 dependencies = [
     "mcp>=2.0.0",
     "pyautogui>=0.9.54",
-    "pywinauto>=0.6.8",
     "Pillow>=10.0.0",
-    "pywin32>=306",
 ]
+
+[project.optional-dependencies]
+windows = ["pywinauto>=0.6.8", "pywin32>=306"]
+linux = ["pyatspi>=2.46.0"]
+mac = []
 
 [project.scripts]
 mcp-winaccess = "server:main"

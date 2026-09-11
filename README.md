@@ -1,42 +1,55 @@
-# mcp-winaccess — Local MCP Server for OpenCode
+# mcp-winaccess
 
-Windows desktop automation and screen interaction through the Model Context Protocol. Combines coordinate-based (`pyautogui`) and UI-automation (`pywinauto`) strategies for robust application control.
+Cross-platform desktop automation via MCP adapter (`adapter/windows.py`, `adapter/linux.py`, `adapter/macos.py`).
 
-## Setup
-```
-pip install -r requirements.txt
+## Install
+
+```bash
+# pip
+pip install mcp-winaccess
+# uv
+uv tool install mcp-winaccess
+# or
+uv pip install mcp-winaccess
 ```
 
 ## Run
+
+```bash
+uvx mcp-winaccess
+```
+
+Or directly:
 ```bash
 python server.py
 ```
 
-## Tools
-- `screenshot` — full screen as base64 JPEG
-- `click(x, y)` — mouse click at coordinates
-- `type_text(text)` — keyboard input
-- `run_app(exe_path)` — start executable
-- `kill_app(name)` — kill process
-- `read_log(path)` — last 20 lines of log
-- `build_project()` — Unity build automation
-- `find_window(title)` — find top-level window
-- `click_element(window_title, control_identifier)` — click UI element
-- `read_text(window_title, control_identifier)` — read control text
-- `manage_window(title, action)` — window management
-- `wait_for_window(title, timeout)` — wait for window
-- `list_windows()` — list visible windows
+Or with adapter module:
+```bash
+python -m adapter
+```
 
 ## OpenCode Config (`opencode.jsonc`)
+
 ```jsonc
 {
   "mcp": {
-    "mcp-winaccess": {
+    "winaccess": {
       "type": "local",
-      "command": ["python", "mcp-winaccess/server.py"],
-      "cwd": ".",
+      "command": [
+        "uvx",
+        "mcp-winaccess"
+      ],
       "enabled": true
     }
   }
 }
 ```
+
+## Unavailable functions by platform
+
+- **Windows** (`pywinauto` + `pyautogui`): none unavailable (all 22 functions available).
+- **Linux** (`pyatspi` + `pyautogui`): unavailable — `manage_window`, `get_all_controls`, `wait_for_element`, `get_window_state`, `set_text`, `type_in_element`, `drag_element` (return errors).
+- **macOS** (`pyautogui` only): unavailable — all window automation functions (`find_window`, `list_windows`, `click_element`, `read_text`, `manage_window`, `wait_for_window`, `get_text`, `set_text`, `get_all_controls`, `wait_for_element`, `get_window_state`, `type_in_element`, `double_click` (on element), `drag_element`).
+
+Unsupported functions are hidden from MCP on each platform.
