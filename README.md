@@ -2,6 +2,11 @@
 
 Cross-platform desktop automation via MCP adapter (`adapter/windows.py`, `adapter/linux.py`, `adapter/macos.py`).
 
+
+## Usage Example
+
+https://youtu.be/W9ZyTohDu2Q
+
 ## Install
 
 ```
@@ -70,3 +75,4 @@ python server.py
 
 
 Unsupported functions are hidden from MCP on each platform.
+
