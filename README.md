@@ -60,30 +60,31 @@ python -m adapter
 ### Always Available
 - `screenshot(save_path?)`: Full screen base64 JPEG.
 - `click(x, y)`: Left-click at screen coordinates.
-- `double_click(x?, y?, window?, control?)`: Double-click.
-- `right_click(x?, y?, window?, control?)`: Right-click.
+- `double_click(x=0, y=0)`: Double-click at screen coordinates (coordinate mode only).
+- `double_click_element(value, control_identifier="", x=0, y=0)`: Double-click a control by index-based `ID` (`element_N`) or `AutoID`/`Name`; `value` is partial window title (`str`) or handle (`int`).
+- `right_click(x=0, y=0)`: Right-click at screen coordinates.
 - `drag(x_from, y_from, x_to, y_to, duration?)`: Drag mouse.
-- `drag_element(window, control, x_to, y_to)`: Drag control to target.
+- `drag_element(value, control_identifier, x_to, y_to, duration?)`: Drag control to target; `value` is partial title (`str`) or handle (`int`).
 - `move_mouse(x, y)`: Move cursor without clicking.
-- `scroll(direction?, amount?, x?, y?, window?, control?)`: Scroll.
+- `scroll(direction="down", amount=3, x=0, y=0)`: Scroll down or up at screen coordinates. Note: `value`/`control_identifier` removed in v1.0.1+.
 - `type_text(text)`: Type text at keyboard focus.
 - `run_app(exe_path?)`: Launch executable.
 - `kill_app(name?)`: Kill process.
-- `switch_to_window(title | handle)`: Restore and activate window by partial title or handle (`int`).
+- `switch_to_window(value)`: Restore and activate window by partial title (`str`) or handle (`int`).
 
 ### Window Automation (Windows / Linux with `pywinauto` / `pyatspi`)
-- `find_window(title?)`: Find top-level window.
+- `find_window(value?)`: Find visible top-level window by partial title (`str`) or handle (`int`). Returns info with title, class, handle, pid, rect.
 - `list_windows()`: List visible windows.
-- `click_element(window, control)`: Click UI control by index-based `ID` (`element_0`) or `AutoID`/`Name`.
-- `read_text(window, control)`: Read control text by `ID`.
-- `manage_window(title?, action?, x?, y?)`: Manage window state.
-- `wait_for_window(title?, timeout?)`: Wait for window to appear.
-- `get_all_controls(window)`: List child controls with index-based IDs (`element_0`, `element_5`), `AutoID`, `Name`, `Class`, `Type`, `Text`, `Handle`. Agents should use the `ID` value for interaction.
-- `wait_for_element(window, control, timeout?)`: Wait for control by `ID`.
-- `get_window_state(title?)`: Window state info.
-- `get_text(window, control)`: Full text from control by `ID`.
-- `set_text(window, control, value)`: Set text in control by `ID`.
-- `type_in_element(window, control, text)`: Type into control by `ID`.
+- `click_element(value, control_identifier)`: Click UI control inside window. `value` = partial title (`str`) or handle (`int`); `control_identifier` = index-based `ID` (`element_0`) or `AutoID`/`Name`.
+- `read_text(value, control_identifier)`: Read control text by `ID`.
+- `manage_window(value, action="maximize", x=0, y=0)`: Manage window state (`minimize`/`maximize`/`restore`/`move`). `value` = title (`str`) or handle (`int`).
+- `wait_for_window(value, timeout?)`: Wait for window by partial title (`str`) or handle (`int`).
+- `get_all_controls(value)`: List child controls inside window (`value` = title `str` or handle `int`). Returns index-based IDs (`element_0`, `element_5`), `AutoID`, `Name`, `Class`, `Type`, `Text`, `Handle`. Agents must use the `ID` value (e.g., `element_5`) as `control_identifier` for interaction with controls.
+- `wait_for_element(value, control_identifier, timeout?)`: Wait for control by `ID`.
+- `get_window_state(value)`: Window state info (`str` or `int`).
+- `get_text(value, control_identifier)`: Full text from control.
+- `set_text(value, control_identifier, value_text)`: Set text in edit control.
+- `type_in_element(value, control_identifier, text)`: Type directly into control.
 
 ### System
 - `read_log(path?)`: Read last 20 lines of log file. (Removed in v1.0.1)
