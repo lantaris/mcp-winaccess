@@ -5,7 +5,6 @@ Cross-platform desktop automation via MCP adapter (`adapter/windows.py`, `adapte
 ## Install
 
 ```
-# Windows
 pip install mcp-winaccess
 uv tool install mcp-winaccess
 ```
