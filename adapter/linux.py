@@ -38,6 +38,14 @@ class LinuxAdapter(BaseAdapter):
         pyautogui.doubleClick(x, y)
         return f"Double clicked at ({x}, {y})"
 
+    def double_click_element(self, value: str = "", control_identifier: str = "", x: int = 0, y: int = 0) -> str:
+        """Agent instruction: Agent uses double_click for automation tasks."""
+        if x == 0 and y == 0:
+            pyautogui.doubleClick()
+            return "Double clicked at current position"
+        pyautogui.doubleClick(x, y)
+        return f"Double clicked at ({x}, {y})"
+
     def right_click(self, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses right_click for automation tasks."""
         if x == 0 and y == 0:
@@ -61,7 +69,7 @@ class LinuxAdapter(BaseAdapter):
         pyautogui.moveTo(x, y, duration=0.2)
         return f"Mouse moved to ({x}, {y})"
 
-    def scroll(self, direction: str = "down", amount: int = 3, x: int = 0, y: int = 0, window_title: str = "", control_identifier: str = "") -> str:
+    def scroll(self, direction: str = "down", amount: int = 3, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses scroll for automation tasks."""
         scroll_amount = 120 if direction == "down" else -120
         for _ in range(amount):
@@ -84,8 +92,10 @@ class LinuxAdapter(BaseAdapter):
         pyautogui.write(text, interval=0.05)
         return f"Typed: {text}"
 
-    def find_window(self, title: str = "") -> Optional[str]:
+    def find_window(self, value) -> Optional[str]:
         """Agent instruction: Agent uses find_window for automation tasks. Accepts partial title (str) or handle (int)."""
+        if isinstance(value, int):
+            return "ERROR: find_window int handles require full automation backend (Windows)."
         if not HAS_PYATSPI:
             return "ERROR: find_window requires pyatspi (not installed or Linux backend unavailable)."
         return "ERROR: Linux adapter find_window is basic; use pyatspi directly for full automation."
@@ -124,8 +134,10 @@ class LinuxAdapter(BaseAdapter):
         """Agent instruction: Agent uses set_text for automation tasks."""
         return "ERROR: set_text requires full UI automation backend."
 
-    def get_all_controls(self, window_title: str) -> Optional[str]:
+    def get_all_controls(self, value) -> Optional[str]:
         """Agent instruction: Agent uses get_all_controls for automation tasks. Returns index-based IDs ('element_0') with AutoID, Name, Class, Type, Text, Handle."""
+        if isinstance(value, int):
+            return "ERROR: get_all_controls int handles require full automation backend (Windows)."
         return "ERROR: get_all_controls requires full UI automation backend."
 
     def wait_for_element(self, window_title: str, control_identifier: str, timeout: float = 10.0) -> Optional[str]:

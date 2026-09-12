@@ -13,6 +13,10 @@ class BaseAdapter:
         """Agent instruction: Agent uses double_click for automation tasks."""
         raise NotImplementedError
 
+    def double_click_element(self, value: str = "", control_identifier: str = "", x: int = 0, y: int = 0) -> str:
+        """Agent instruction: Agent uses double_click for automation tasks."""
+        raise NotImplementedError
+
     def right_click(self, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses right_click for automation tasks."""
         raise NotImplementedError
@@ -29,7 +33,7 @@ class BaseAdapter:
         """Agent instruction: Agent uses move_mouse for automation tasks."""
         raise NotImplementedError
 
-    def scroll(self, direction: str = "down", amount: int = 3, x: int = 0, y: int = 0, window_title: str = "", control_identifier: str = "") -> str:
+    def scroll(self, direction: str = "down", amount: int = 3, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses scroll for automation tasks."""
         raise NotImplementedError
 

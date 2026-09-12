@@ -41,6 +41,37 @@ class WindowsAdapter(BaseAdapter):
         pyautogui.doubleClick(x, y)
         return f"Double clicked at ({x}, {y})"
 
+    def double_click_element(self, value: str = "", control_identifier: str = "", x: int = 0, y: int = 0) -> str:
+        """Agent instruction: Agent uses double_click for automation tasks."""
+        if value and control_identifier:
+            desktop = Desktop()
+            for win in desktop.windows():
+                try:
+                    match = False
+                    if isinstance(value, int):
+                        if win.handle == value:
+                            match = True
+                    else:
+                        if value in (win.window_text() or ""):
+                            match = True
+                    if match:
+                        ctrl_obj = self._find_control(desktop, win, control_identifier)
+                        if ctrl_obj is not None:
+                            rect = ctrl_obj.rectangle()
+                            cx = (rect.left + rect.right) // 2
+                            cy = (rect.top + rect.bottom) // 2
+                            pyautogui.moveTo(cx, cy)
+                            pyautogui.doubleClick(cx, cy)
+                            return f"Double clicked control '{control_identifier}' at ({cx}, {cy})"
+                except Exception:
+                    continue
+            return f"ERROR: Control '{control_identifier}' not found for double click."
+        if x == 0 and y == 0:
+            pyautogui.doubleClick()
+            return "Double clicked at current position"
+        pyautogui.doubleClick(x, y)
+        return f"Double clicked at ({x}, {y})"
+
     def right_click(self, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses right_click for automation tasks."""
         if x == 0 and y == 0:
@@ -55,12 +86,19 @@ class WindowsAdapter(BaseAdapter):
         pyautogui.dragTo(x_to, y_to, duration=duration, button='left')
         return f"DRAGGED from ({x_from}, {y_from}) to ({x_to}, {y_to})"
 
-    def drag_element(self, window_title: str, control_identifier: str, x_to: int, y_to: int, duration: float = 0.5) -> str:
+    def drag_element(self, value, control_identifier: str, x_to: int, y_to: int, duration: float = 0.5) -> str:
         """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
-                if window_title in (win.window_text() or ""):
+                match = False
+                if isinstance(value, int):
+                    if win.handle == value:
+                        match = True
+                else:
+                    if value in (win.window_text() or ""):
+                        match = True
+                if match:
                     ctrl_obj = self._find_control(desktop, win, control_identifier)
                     if ctrl_obj is not None:
                         rect = ctrl_obj.rectangle()
@@ -78,21 +116,9 @@ class WindowsAdapter(BaseAdapter):
         pyautogui.moveTo(x, y, duration=0.2)
         return f"Mouse moved to ({x}, {y})"
 
-    def scroll(self, direction: str = "down", amount: int = 3, x: int = 0, y: int = 0, window_title: str = "", control_identifier: str = "") -> str:
+    def scroll(self, direction: str = "down", amount: int = 3, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses scroll for automation tasks."""
         scroll_amount = 120 if direction == "down" else -120
-        if window_title and control_identifier:
-            desktop = Desktop()
-            for win in desktop.windows():
-                try:
-                    if window_title in (win.window_text() or ""):
-                        ctrl = win.descendants(title_re=control_identifier)
-                        if ctrl and len(ctrl) > 0:
-                            ctrl[0].wheel_mouse_input(wheel_dist=scroll_amount * amount)
-                            return f"SCROLLED {direction} {amount} inside '{control_identifier}'"
-                except Exception:
-                    continue
-            return f"ERROR: Control '{control_identifier}' not found"
         for _ in range(amount):
             pyautogui.scroll(scroll_amount, x=x, y=y)
         return f"SCROLLED {direction} {amount} at ({x}, {y})"
@@ -185,7 +211,16 @@ class WindowsAdapter(BaseAdapter):
         return f"ERROR: Window '{value}' not found or action '{action}' unknown."
 
     def _find_control(self, desktop, win, control_identifier: str):
-        """Agent instruction: Search by title_re first, then by automation name/auto_id."""
+        """Agent instruction: Search by title_re first, then by automation name/auto_id, then index (element_N)."""
+        # Index-based ID from get_all_controls (e.g., element_0, element_5)
+        if isinstance(control_identifier, str) and control_identifier.startswith("element_"):
+            try:
+                idx = int(control_identifier.split("_")[1])
+                descendants = list(win.descendants())
+                if 0 <= idx < len(descendants):
+                    return descendants[idx]
+            except Exception:
+                pass
         ctrl = win.descendants(title_re=control_identifier)
         if ctrl and len(ctrl) > 0:
             return ctrl[0]
@@ -209,12 +244,19 @@ class WindowsAdapter(BaseAdapter):
             pass
         return None
 
-    def click_element(self, window_title: str, control_identifier: str) -> Optional[str]:
+    def click_element(self, value, control_identifier: str) -> Optional[str]:
         """Agent instruction: control_identifier should be the index-based 'ID' value from get_all_controls (e.g., 'element_0', 'element_5') or AutoID/Name."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
-                if window_title in (win.window_text() or ""):
+                match = False
+                if isinstance(value, int):
+                    if win.handle == value:
+                        match = True
+                else:
+                    if value in (win.window_text() or ""):
+                        match = True
+                if match:
                     ctrl_obj = self._find_control(desktop, win, control_identifier)
                     if ctrl_obj is not None:
                         ctrl_obj.click_input()
@@ -223,12 +265,19 @@ class WindowsAdapter(BaseAdapter):
                 continue
         return f"ERROR: Control '{control_identifier}' not found."
 
-    def read_text(self, window_title: str, control_identifier: str) -> Optional[str]:
+    def read_text(self, value, control_identifier: str) -> Optional[str]:
         """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
-                if window_title in (win.window_text() or ""):
+                match = False
+                if isinstance(value, int):
+                    if win.handle == value:
+                        match = True
+                else:
+                    if value in (win.window_text() or ""):
+                        match = True
+                if match:
                     ctrl_obj = self._find_control(desktop, win, control_identifier)
                     if ctrl_obj is not None:
                         text_content = ctrl_obj.window_text() or ""
@@ -237,30 +286,44 @@ class WindowsAdapter(BaseAdapter):
                 continue
         return f"ERROR: Control '{control_identifier}' not found."
 
-    def get_text(self, window_title: str, control_identifier: str) -> Optional[str]:
+    def get_text(self, value, control_identifier: str) -> Optional[str]:
         """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""
-        return self.read_text(window_title, control_identifier)
+        return self.read_text(value, control_identifier)
 
-    def set_text(self, window_title: str, control_identifier: str, value: str) -> Optional[str]:
+    def set_text(self, value, control_identifier: str, text_value: str) -> Optional[str]:
         """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
-                if window_title in (win.window_text() or ""):
+                match = False
+                if isinstance(value, int):
+                    if win.handle == value:
+                        match = True
+                else:
+                    if value in (win.window_text() or ""):
+                        match = True
+                if match:
                     ctrl_obj = self._find_control(desktop, win, control_identifier)
                     if ctrl_obj is not None:
-                        ctrl_obj.set_text(value)
-                        return f"SET_TEXT: '{value}' into '{control_identifier}'"
+                        ctrl_obj.set_text(text_value)
+                        return f"SET_TEXT: '{text_value}' into '{control_identifier}'"
             except Exception:
                 continue
         return f"ERROR: Control '{control_identifier}' not found."
 
-    def get_all_controls(self, window_title: str) -> Optional[str]:
+    def get_all_controls(self, value) -> Optional[str]:
         """Agent instruction: Call this before interacting with an unknown window. The output format is 'ID: \"element_0\" | AutoID: \"...\" | Name: \"...\" | Class: \"...\" | Type: ... | Text: \"...\" | Handle: ...'. Use the 'ID' value (e.g., 'element_0', 'element_5') as control_identifier for click_element, set_text, read_text, etc. If needed, use the 'Name' or 'AutoID' as identifier."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
-                if window_title in (win.window_text() or ""):
+                match = False
+                if isinstance(value, int):
+                    if win.handle == value:
+                        match = True
+                else:
+                    if value in (win.window_text() or ""):
+                        match = True
+                if match:
                     results = []
                     for idx, child in enumerate(win.descendants()):
                         try:
@@ -277,16 +340,23 @@ class WindowsAdapter(BaseAdapter):
                     return "\n".join(results) if results else "No controls found."
             except Exception:
                 continue
-        return f"ERROR: Window '{window_title}' not found."
+        return f"ERROR: Window '{value}' not found."
 
-    def wait_for_element(self, window_title: str, control_identifier: str, timeout: float = 10.0) -> Optional[str]:
+    def wait_for_element(self, value, control_identifier: str, timeout: float = 10.0) -> Optional[str]:
         """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""
         desktop = Desktop()
         start = time.time()
         while time.time() - start < timeout:
             for win in desktop.windows():
                 try:
-                    if window_title in (win.window_text() or ""):
+                    match = False
+                    if isinstance(value, int):
+                        if win.handle == value:
+                            match = True
+                    else:
+                        if value in (win.window_text() or ""):
+                            match = True
+                    if match:
                         ctrl_obj = self._find_control(desktop, win, control_identifier)
                         if ctrl_obj is not None:
                             return f"ELEMENT FOUND: '{control_identifier}'"
@@ -314,24 +384,36 @@ class WindowsAdapter(BaseAdapter):
                 continue
         return f"ERROR: Window '{value}' not found or could not be activated."
 
-    def get_window_state(self, title: str = "") -> Optional[str]:
+    def get_window_state(self, value) -> Optional[str]:
         """Agent instruction: Agent uses get_window_state for automation tasks. Accepts partial title (str) or handle (int)."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
-                if title in (win.window_text() or ""):
-                    rect = win.rectangle()
-                    return f"Window: title={win.window_text()}, rect={rect}, handle={win.handle}, pid={win.process_id()}"
+                if isinstance(value, int):
+                    if win.handle == value:
+                        rect = win.rectangle()
+                        return f"Window: title={win.window_text()}, rect={rect}, handle={win.handle}, pid={win.process_id()}"
+                else:
+                    if value in (win.window_text() or ""):
+                        rect = win.rectangle()
+                        return f"Window: title={win.window_text()}, rect={rect}, handle={win.handle}, pid={win.process_id()}"
             except Exception:
                 continue
-        return f"ERROR: Window '{title}' not found."
+        return f"ERROR: Window '{value}' not found."
 
-    def type_in_element(self, window_title: str, control_identifier: str, text: str) -> Optional[str]:
+    def type_in_element(self, value, control_identifier: str, text: str) -> Optional[str]:
         """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""
         desktop = Desktop()
         for win in desktop.windows():
             try:
-                if window_title in (win.window_text() or ""):
+                match = False
+                if isinstance(value, int):
+                    if win.handle == value:
+                        match = True
+                else:
+                    if value in (win.window_text() or ""):
+                        match = True
+                if match:
                     ctrl_obj = self._find_control(desktop, win, control_identifier)
                     if ctrl_obj is not None:
                         ctrl_obj.click_input()

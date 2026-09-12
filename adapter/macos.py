@@ -32,6 +32,14 @@ class MacOSAdapter(BaseAdapter):
         pyautogui.doubleClick(x, y)
         return f"Double clicked at ({x}, {y})"
 
+    def double_click_element(self, value: str = "", control_identifier: str = "", x: int = 0, y: int = 0) -> str:
+        """Agent instruction: Agent uses double_click for automation tasks."""
+        if x == 0 and y == 0:
+            pyautogui.doubleClick()
+            return "Double clicked at current position"
+        pyautogui.doubleClick(x, y)
+        return f"Double clicked at ({x}, {y})"
+
     def right_click(self, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses right_click for automation tasks."""
         if x == 0 and y == 0:
@@ -55,7 +63,7 @@ class MacOSAdapter(BaseAdapter):
         pyautogui.moveTo(x, y, duration=0.2)
         return f"Mouse moved to ({x}, {y})"
 
-    def scroll(self, direction: str = "down", amount: int = 3, x: int = 0, y: int = 0, window_title: str = "", control_identifier: str = "") -> str:
+    def scroll(self, direction: str = "down", amount: int = 3, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses scroll for automation tasks."""
         scroll_amount = 120 if direction == "down" else -120
         for _ in range(amount):
