@@ -5,7 +5,7 @@ Cross-platform desktop automation via MCP adapter (`adapter/windows.py`, `adapte
 
 ## Usage Example
 
-https://youtu.be/W9ZyTohDu2Q
+<iframe width="560" height="315" src="https://www.youtube.com/embed/W9ZyTohDu2Q" title="Usage Example" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Install
 
