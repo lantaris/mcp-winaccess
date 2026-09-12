@@ -4,38 +4,21 @@ Cross-platform desktop automation via MCP adapter (`adapter/windows.py`, `adapte
 
 ## Install
 
-```bash
+```
 # Windows
-pip install mcp-winaccess[windows]
-uv tool install mcp-winaccess[windows]
-
-# Linux
-pip install mcp-winaccess[linux]
-uv tool install mcp-winaccess[linux]
-
-# macOS
 pip install mcp-winaccess
 uv tool install mcp-winaccess
-
-# Or base only (no platform extras)
-pip install mcp-winaccess
-uv pip install mcp-winaccess
 ```
 
 ## Run
 
-```bash
+```
 uvx mcp-winaccess
 ```
 
 Or directly:
-```bash
-python server.py
 ```
-
-Or with adapter module:
-```bash
-python -m adapter
+python server.py
 ```
 
 ## OpenCode Config (`opencode.jsonc`)
@@ -86,8 +69,5 @@ python -m adapter
 - `set_text(value, control_identifier, value_text)`: Set text in edit control.
 - `type_in_element(value, control_identifier, text)`: Type directly into control.
 
-### System
-- `read_log(path?)`: Read last 20 lines of log file. (Removed in v1.0.1)
-- `build_project()`: Run Unity build automation. (Removed in v1.0.1)
 
 Unsupported functions are hidden from MCP on each platform.
