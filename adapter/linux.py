@@ -76,16 +76,20 @@ class LinuxAdapter(BaseAdapter):
             pyautogui.scroll(scroll_amount, x=x, y=y)
         return f"SCROLLED {direction} {amount} at ({x}, {y})"
 
-    def screenshot(self, save_path: Optional[str] = None) -> str:
-        """Agent instruction: Agent uses screenshot for automation tasks."""
+    def screenshot_base64(self) -> str:
+        """Agent instruction: Captures full desktop screen and returns base64-encoded JPEG string. Format: IMAGE_BASE64:{base64_string}."""
         import base64, io
         img = pyautogui.screenshot()
-        if save_path:
-            img.save(save_path)
         buf = io.BytesIO()
         img.save(buf, format="JPEG")
         b64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
         return f"IMAGE_BASE64:{b64_str}"
+
+    def screenshot_jpg(self, path: str) -> str:
+        """Agent instruction: Captures full desktop screen and saves as JPEG file to the specified path."""
+        img = pyautogui.screenshot()
+        img.save(path, "JPEG")
+        return f"Saved screenshot: {path}"
 
     def type_text(self, text: str) -> str:
         """Agent instruction: Agent uses type_text for automation tasks."""

@@ -45,18 +45,19 @@ python server.py
 ## Tools
 
 ### Always Available
-- `screenshot(save_path?)`: Full screen base64 JPEG.
-- `click(x, y)`: Left-click at screen coordinates.
-- `double_click(x=0, y=0)`: Double-click at screen coordinates (coordinate mode only).
-- `double_click_element(value, control_identifier="", x=0, y=0)`: Double-click a control by index-based `ID` (`element_N`) or `AutoID`/`Name`; `value` is partial window title (`str`) or handle (`int`).
-- `right_click(x=0, y=0)`: Right-click at screen coordinates.
-- `drag(x_from, y_from, x_to, y_to, duration?)`: Drag mouse.
-- `drag_element(value, control_identifier, x_to, y_to, duration?)`: Drag control to target; `value` is partial title (`str`) or handle (`int`).
-- `move_mouse(x, y)`: Move cursor without clicking.
-- `scroll(direction="down", amount=3, x=0, y=0)`: Scroll down or up at screen coordinates. Note: `value`/`control_identifier` removed in v1.0.1+.
-- `type_text(text)`: Type text at keyboard focus.
-- `run_app(exe_path?)`: Launch executable.
-- `kill_app(name?)`: Kill process.
+- `screenshot_base64()`: Captures full desktop screen and returns base64-encoded JPEG (`IMAGE_BASE64:...`). No parameters. Call when agent needs visual screen feedback.
+- `screenshot_jpg(path: str)`: Captures full desktop screen and saves `.jpg` to the given file path (`path`). Returns confirmation with saved path. Call when agent needs to persist screenshot to disk.
+- `click(x, y)`: Left-click at absolute screen coordinates (`x`, `y` pixels).
+- `double_click(x=0, y=0)`: Double-click at absolute screen coordinates. If both `x` and `y` are `0`, uses current mouse position.
+- `double_click_element(value, control_identifier="", x=0, y=0)`: Double-click a control inside a window (`value` = partial title `str` or handle `int`; `control_identifier` = index-based `ID` `element_N` or `AutoID`/`Name`). If `value` and `control_identifier` are provided, performs element-based double click at control center; otherwise uses coordinate mode.
+- `right_click(x=0, y=0)`: Right-click at absolute screen coordinates. Defaults to current position when `x=y=0`.
+- `drag(x_from, y_from, x_to, y_to, duration=0.5)`: Drag mouse from start (`x_from`, `y_from`) to end (`x_to`, `y_to`) over `duration` seconds.
+- `drag_element(value, control_identifier, x_to, y_to, duration=0.5)`: Drag a UI control (`control_identifier` from `get_all_controls`) inside window (`value`) to target screen coordinates (`x_to`, `y_to`).
+- `move_mouse(x, y)`: Move cursor to absolute coordinates (`x`, `y`) without clicking.
+- `scroll(direction="down", amount=3, x=0, y=0)`: Scroll mouse wheel `down` or `up` at coordinates (`x`, `y`) for `amount` steps.
+- `type_text(text)`: Type `text` at current keyboard focus.
+- `run_app(exe_path)`: Launch executable at `exe_path`.
+- `kill_app(name)`: Kill process by executable base name (`name`, without `.exe`) using `taskkill /F /IM`.
 - `switch_to_window(value)`: Restore and activate window by partial title (`str`) or handle (`int`).
 
 ### Window Automation (Windows / Linux with `pywinauto` / `pyatspi`)

@@ -123,16 +123,20 @@ class WindowsAdapter(BaseAdapter):
             pyautogui.scroll(scroll_amount, x=x, y=y)
         return f"SCROLLED {direction} {amount} at ({x}, {y})"
 
-    def screenshot(self, save_path: Optional[str] = None) -> str:
-        """Agent instruction: Agent uses screenshot for automation tasks."""
+    def screenshot_base64(self) -> str:
+        """Agent instruction: Captures full desktop screen. Returns base64-encoded JPEG string in format IMAGE_BASE64:{base64_string}. Call this when agent needs to see current screen content (e.g., verify button visibility, read screen state). No file saved."""
         import io
         img = pyautogui.screenshot()
-        if save_path:
-            img.save(save_path)
         buf = io.BytesIO()
         img.save(buf, format="JPEG")
         b64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
         return f"IMAGE_BASE64:{b64_str}"
+
+    def screenshot_jpg(self, path: str) -> str:
+        """Agent instruction: Captures full desktop screen and saves JPEG to the specified file path (str). Returns confirmation with saved path. Call this when agent needs to save screenshot for later review or reporting."""
+        img = pyautogui.screenshot()
+        img.save(path, "JPEG")
+        return f"Saved screenshot: {path}"
 
     def type_text(self, text: str) -> str:
         """Agent instruction: Agent uses type_text for automation tasks."""
