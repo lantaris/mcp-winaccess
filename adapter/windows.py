@@ -41,7 +41,7 @@ class WindowsAdapter(BaseAdapter):
         pyautogui.doubleClick(x, y)
         return f"Double clicked at ({x}, {y})"
 
-    def double_click_element(self, value: str = "", control_identifier: str = "", x: int = 0, y: int = 0) -> str:
+    def double_click_element(self, value: str = "", control_identifier: str = "") -> str:
         """Agent instruction: Agent uses double_click for automation tasks."""
         if value and control_identifier:
             desktop = Desktop()
@@ -66,11 +66,7 @@ class WindowsAdapter(BaseAdapter):
                 except Exception:
                     continue
             return f"ERROR: Control '{control_identifier}' not found for double click."
-        if x == 0 and y == 0:
-            pyautogui.doubleClick()
-            return "Double clicked at current position"
-        pyautogui.doubleClick(x, y)
-        return f"Double clicked at ({x}, {y})"
+        return f"ERROR: double_click_element requires value and control_identifier."
 
     def right_click(self, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses right_click for automation tasks."""
@@ -128,12 +124,18 @@ class WindowsAdapter(BaseAdapter):
         import io
         img = pyautogui.screenshot()
         buf = io.BytesIO()
-        img.save(buf, format="JPEG")
         b64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
         return f"IMAGE_BASE64:{b64_str}"
 
-    def screenshot_jpg(self, path: str) -> str:
-        """Agent instruction: Captures full desktop screen and saves JPEG to the specified file path (str). Returns confirmation with saved path. Call this when agent needs to save screenshot for later review or reporting."""
+    def screenshot(self):
+        """Agent instruction: Returns full desktop screenshot as PIL Image."""
+        return pyautogui.screenshot()
+
+    def screenshot_jpg(self, path: str = "") -> str:
+        """Agent instruction: Captures full desktop screen and saves JPEG to the specified file path (str). If path is empty, saves to system temp folder with random name. Returns confirmation with saved path."""
+        import tempfile, uuid
+        if not path:
+            path = tempfile.gettempdir() + "/" + str(uuid.uuid4()) + ".jpg"
         img = pyautogui.screenshot()
         img.save(path, "JPEG")
         return f"Saved screenshot: {path}"
@@ -205,7 +207,9 @@ class WindowsAdapter(BaseAdapter):
                         elif action == "restore": win.restore(); return f"Restored: {win.window_text()}"
                         elif action == "move": win.move_window(x=x, y=y); return f"Moved: {win.window_text()} to ({x}, {y})"
                 else:
-                    if value in (win.window_text() or ""):
+                    win_text = win.window_text() or ""
+                    win_class = win.class_name() or ""
+                    if value in win_text or value in win_class:
                         if action == "minimize": win.minimize(); return f"Minimized: {win.window_text()}"
                         elif action == "maximize": win.maximize(); return f"Maximized: {win.window_text()}"
                         elif action == "restore": win.restore(); return f"Restored: {win.window_text()}"
@@ -269,7 +273,7 @@ class WindowsAdapter(BaseAdapter):
                 continue
         return f"ERROR: Control '{control_identifier}' not found."
 
-    def read_text(self, value, control_identifier: str) -> Optional[str]:
+    def get_text(self, value, control_identifier: str) -> Optional[str]:
         """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""
         desktop = Desktop()
         for win in desktop.windows():
@@ -289,10 +293,6 @@ class WindowsAdapter(BaseAdapter):
             except Exception:
                 continue
         return f"ERROR: Control '{control_identifier}' not found."
-
-    def get_text(self, value, control_identifier: str) -> Optional[str]:
-        """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""
-        return self.read_text(value, control_identifier)
 
     def set_text(self, value, control_identifier: str, text_value: str) -> Optional[str]:
         """Agent instruction: control_identifier is the index-based 'ID' (e.g., 'element_0') or AutoID/Name from get_all_controls."""

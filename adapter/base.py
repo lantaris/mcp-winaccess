@@ -13,7 +13,7 @@ class BaseAdapter:
         """Agent instruction: Agent uses double_click for automation tasks."""
         raise NotImplementedError
 
-    def double_click_element(self, value: str = "", control_identifier: str = "", x: int = 0, y: int = 0) -> str:
+    def double_click_element(self, value: str = "", control_identifier: str = "") -> str:
         """Agent instruction: Agent uses double_click for automation tasks."""
         raise NotImplementedError
 
@@ -37,11 +37,15 @@ class BaseAdapter:
         """Agent instruction: Agent uses scroll for automation tasks."""
         raise NotImplementedError
 
+    def screenshot(self):
+        """Agent instruction: Returns full desktop screenshot as PIL Image."""
+        raise NotImplementedError
+
     def screenshot_base64(self) -> str:
         """Agent instruction: Returns full desktop screenshot as base64-encoded JPEG string. Format: IMAGE_BASE64:{base64_string}. Use when agent needs to see screen content."""
         raise NotImplementedError
 
-    def screenshot_jpg(self, path: str) -> str:
+    def screenshot_jpg(self, path: str = "") -> str:
         """Agent instruction: Saves full desktop screenshot to the given file path (.jpg). Returns confirmation with saved path."""
         raise NotImplementedError
 

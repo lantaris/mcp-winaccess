@@ -3,7 +3,8 @@
 import subprocess
 import sys
 
-from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver import MCPServer, Image
+import pyautogui
 from adapter import get_adapter
 
 adapter = get_adapter()
@@ -17,9 +18,14 @@ mcp = MCPServer("mcp-winaccess")
 def screenshot_base64() -> str:
     return adapter.screenshot_base64()
 
-@mcp.tool(description="screenshot_jpg: Captures full desktop screen and saves it as a JPEG file to the specified path. Parameter: path (str) — absolute or relative file path where the .jpg should be saved. Returns confirmation string with saved path. Call this when agent needs to persist screenshot to disk.")
-def screenshot_jpg(path: str) -> str:
+@mcp.tool(description="screenshot_jpg: Captures full desktop screen and saves it as a JPEG file. Parameter: path (str, optional) — absolute or relative file path; if empty, saves to system temp folder with random name. Returns confirmation string with saved path.")
+def screenshot_jpg(path: str = "") -> str:
     return adapter.screenshot_jpg(path)
+
+@mcp.tool(description="screenshot: Captures full desktop screen and return native Image - native screenshot for agent directly visible in chat")
+def screenshot() -> Image:
+    img = adapter.screenshot()
+    return Image(data=img.tobytes(), format="jpeg")
 
 @mcp.tool(description="click: Performs a left mouse click at absolute screen coordinates. Parameters: x (int) — horizontal coordinate in pixels; y (int) — vertical coordinate in pixels. Returns confirmation string with coordinates clicked. Use for clicking buttons, links, or any UI element by known position.")
 def click(x: int, y: int) -> str:
@@ -71,7 +77,7 @@ def kill_app(name: str) -> str:
 # --- Window automation (conditional based on adapter) ---
 
 if adapter.supports_ui_automation:
-    @mcp.tool(description="find_window: Finds a visible top-level window by partial title or window handle. Parameter: value (str or int) — partial window title substring or integer handle. Returns formatted info string with title, class, handle, PID, and rectangle, or error if not found. Call before interacting with unknown windows.")
+    @mcp.tool(description="find_window: Finds a visible top-level window by partial title (str), window class (str), or handle (int). Returns formatted info string with title, class, handle, PID, and rectangle, or error if not found. Call before interacting with unknown windows.")
     def find_window(value) -> str:
         result = adapter.find_window(value) or f"ERROR: Window '{value}' not found."
         return result
@@ -86,12 +92,12 @@ if adapter.supports_ui_automation:
         result = adapter.read_text(value, control_identifier)
         return result or f"ERROR: Control '{control_identifier}' not found."
 
-    @mcp.tool(description="manage_window: Manages the state of a window. Parameters: value (str or int) — partial title or handle; action (str, default='maximize') — one of 'minimize', 'maximize', 'restore', 'move'; x (int, default=0) and y (int, default=0) — coordinates for 'move' action only. Returns status confirmation or error. Use to bring windows to front or rearrange workspace.")
+    @mcp.tool(description="manage_window: Manages the state of a window. Parameters: value (str or int) — partial title, window class, or handle; action (str, default='maximize') — one of 'minimize', 'maximize', 'restore', 'move'; x (int, default=0) and y (int, default=0) — coordinates for 'move' action only. Returns status confirmation or error. Use to bring windows to front or rearrange workspace.")
     def manage_window(value, action: str = "maximize", x: int = 0, y: int = 0) -> str:
         result = adapter.manage_window(value, action, x, y)
         return result or f"ERROR: Manage window failed."
 
-    @mcp.tool(description="wait_for_window: Waits for a top-level window to appear, with timeout. Parameters: value (str or int) — partial title or handle; timeout (float, default=10.0) — maximum wait time in seconds. Returns confirmation when found, or timeout error. Use when launching apps and waiting for their windows.")
+    @mcp.tool(description="wait_for_window: Waits for a top-level window by partial title (str), window class (str), or handle (int). Parameter: value (str or int) — partial title, window class, or handle; timeout (float, default=10.0) — max wait time. Returns confirmation when found, or timeout error. Use when launching apps and waiting for their windows.")
     def wait_for_window(value, timeout: float = 10.0) -> str:
         result = adapter.wait_for_window(value, timeout)
         return result or f"ERROR: Timeout waiting for '{value}'."
@@ -136,11 +142,10 @@ if adapter.supports_ui_automation:
         result = adapter.type_in_element(value, control_identifier, text)
         return result or f"ERROR: Control '{control_identifier}' not found."
 
-    @mcp.tool(description="double_click_element: Performs a double click on a specific control inside a window, or at screen coordinates. Parameters: value (str or int) — partial window title or handle; control_identifier (str, default='') — index-based ID or AutoID/Name; x (int, default=0) and y (int, default=0) — coordinate fallback. If value and control_identifier are provided, performs element-based double click at control center; otherwise uses coordinate mode. Returns confirmation or error.")
-    def double_click_element(value, control_identifier: str = "", x: int = 0, y: int = 0) -> str:
-        if value and control_identifier:
-            return adapter.double_click_element(value, control_identifier)
-        return adapter.double_click_element("", "", x, y)
+    @mcp.tool(description="double_click_element: Performs a double click on a specific control inside a window. Parameters: value (str or int) — partial window title or handle; control_identifier (str, default='') — index-based ID or AutoID/Name from get_all_controls. Returns confirmation or error.")
+    def double_click_element(value, control_identifier: str = "") -> str:
+        result = adapter.double_click_element(value, control_identifier)
+        return result or f"ERROR: Control '{control_identifier}' not found."
 
     @mcp.tool(description="drag_element: Drags a UI control inside a window to target screen coordinates. Parameters: value (str or int) — window identifier; control_identifier (str) — index-based ID or AutoID/Name from get_all_controls; x_to (int) — target X; y_to (int) — target Y; duration (float, default=0.5) — drag duration in seconds. Returns drag confirmation or error. Use for moving sliders, rearranging items, or resizing within windows.")
     def drag_element(value, control_identifier: str, x_to: int, y_to: int, duration: float = 0.5) -> str:

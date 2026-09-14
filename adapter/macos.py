@@ -32,13 +32,9 @@ class MacOSAdapter(BaseAdapter):
         pyautogui.doubleClick(x, y)
         return f"Double clicked at ({x}, {y})"
 
-    def double_click_element(self, value: str = "", control_identifier: str = "", x: int = 0, y: int = 0) -> str:
+    def double_click_element(self, value: str = "", control_identifier: str = "") -> str:
         """Agent instruction: Agent uses double_click for automation tasks."""
-        if x == 0 and y == 0:
-            pyautogui.doubleClick()
-            return "Double clicked at current position"
-        pyautogui.doubleClick(x, y)
-        return f"Double clicked at ({x}, {y})"
+        return "ERROR: double_click_element requires full UI automation backend."
 
     def right_click(self, x: int = 0, y: int = 0) -> str:
         """Agent instruction: Agent uses right_click for automation tasks."""
@@ -79,8 +75,15 @@ class MacOSAdapter(BaseAdapter):
         b64_str = base64.b64encode(buf.getvalue()).decode("utf-8")
         return f"IMAGE_BASE64:{b64_str}"
 
-    def screenshot_jpg(self, path: str) -> str:
-        """Agent instruction: Captures full desktop screen and saves as JPEG file to the specified path."""
+    def screenshot(self):
+        """Agent instruction: Returns full desktop screenshot as PIL Image."""
+        return pyautogui.screenshot()
+
+    def screenshot_jpg(self, path: str = "") -> str:
+        """Agent instruction: Captures full desktop screen and saves as JPEG file to the specified path. If path is empty, saves to system temp folder with random name."""
+        import tempfile, uuid
+        if not path:
+            path = tempfile.gettempdir() + "/" + str(uuid.uuid4()) + ".jpg"
         img = pyautogui.screenshot()
         img.save(path, "JPEG")
         return f"Saved screenshot: {path}"
